@@ -7,9 +7,9 @@
 #define echo 3
 int time1=0;
 char key;
-bool ultraActive=0;
+bool ultraActive=0,Self_Avoid=0;
 unsigned long long int timer1=0,timer2=0,timer3=0,timer4=0;
-unsigned int position1=90,fowrwardDistance=100,leftDistance=100,rightDistance=100;
+unsigned int position1=90,fowrwardDistance=100,leftDistance=100,rightDistance=100; 
 int count=0;
 Servo myServo;
 void setup() {
@@ -36,13 +36,20 @@ void loop() {
   {
     key=Serial.read();
   }
-  if(key=='M')
+  if(key=='M')  //Press M via Bluetooth to active radar
   {
     ultraActive=1;
+    Self_Avoid=0;
   }
-  if(key=='O')
+  if(key=='O')     //Press M via Bluetooth to disable radar
   {
     ultraActive=0;
+    Self_Avoid=0;
+  }
+  if(key=='S'){   //Press S via Bluetooth to active Self avoiding collision
+    ultraActive=1;
+    Self_Avoid=1;
+    
   }
   if(ultraActive==0)
 {
@@ -67,7 +74,7 @@ else{
   
 }
 else if(ultraActive==1){
-  
+  ///radar movement (90 ->> 180 ->>90 ->> 0) 
 if(millis()-timer1>=1100){
    myServo.write(90);
   timer1=millis();
@@ -92,7 +99,8 @@ if(millis()-timer4>=4100){
   position1=0;
   
 }
-else{}
+else{} 
+///Store the distance in all directions
 if(position1==90)
 {
   delay(100);
@@ -108,6 +116,8 @@ if(position1==0)
   delay(100);
   leftDistance=distance();
 }
+///Take action to disable direction that will make collide
+if(Self_Avoid==0) {
 if(fowrwardDistance<=30)
   {
     count++;
@@ -164,6 +174,32 @@ else{
   stop1();
 }
   }
+}
+  ///Self Avoid is Activeted
+  else if(Self_Avoid==1){
+  count++;
+if(fowrwardDistance<=30)
+  {
+    stop1();
+    delay(100);
+    if(rightDistance>=30 || leftDistance >=30)
+    {
+      if(max(rightDistance,leftDistance)==rightDistance)
+      {
+        right();
+      }
+      else if(max(rightDistance,leftDistance)==leftDistance)
+      {
+        left();
+      }
+    }
+  }
+  else{
+    forward();
+  }
+    
+  }
+  ///If the road is clear so move anywhere without limits
 if(count==0){
      if(key=='A')
   {
@@ -182,8 +218,8 @@ else{
   stop1();
 }
   }
-  
 }
+
  count=0;
  Serial.print("Fowrward");
   Serial.println(fowrwardDistance);
@@ -192,7 +228,11 @@ else{
   Serial.print("left");
   Serial.println(leftDistance);
   Serial.print("****************************");
+  Serial.println(max(rightDistance,leftDistance));
+  Serial.print("****************************");
+  
 }
+
 void forward(){
 digitalWrite(motora1,HIGH);
 digitalWrite(motora2,LOW);
@@ -241,7 +281,5 @@ digitalWrite(motorb2,LOW);
     distance=time1*(0.0343/2);
     return distance;
     
-    
-
     
   }

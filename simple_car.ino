@@ -5,13 +5,15 @@
 #define motorb2 11
 #define trig 2
 #define echo 3
+Servo myServo;
 int time1=0;
 char key;
 bool ultraActive=0,Self_Avoid=0;
 unsigned long long int timer1=0,timer2=0,timer3=0,timer4=0;
 unsigned int position1=90,fowrwardDistance=100,leftDistance=100,rightDistance=100; 
+unsigned int rightDistance_Self=100,leftDistance_Self=100,maxd=0,fowrward_Self=0;
 int count=0;
-Servo myServo;
+unsigned int count3=0;
 void setup() {
   Serial.begin(9600);
 
@@ -73,7 +75,7 @@ else{
 }
   
 }
-else if(ultraActive==1){
+if(ultraActive==1 &&Self_Avoid ==0){
   ///radar movement (90 ->> 180 ->>90 ->> 0) 
 if(millis()-timer1>=1100){
    myServo.write(90);
@@ -117,7 +119,6 @@ if(position1==0)
   leftDistance=distance();
 }
 ///Take action to disable direction that will make collide
-if(Self_Avoid==0) {
 if(fowrwardDistance<=30)
   {
     count++;
@@ -174,31 +175,6 @@ else{
   stop1();
 }
   }
-}
-  ///Self Avoid is Activeted
-  else if(Self_Avoid==1){
-  count++;
-if(fowrwardDistance<=30)
-  {
-    stop1();
-    delay(100);
-    if(rightDistance>=30 || leftDistance >=30)
-    {
-      if(max(rightDistance,leftDistance)==rightDistance)
-      {
-        right();
-      }
-      else if(max(rightDistance,leftDistance)==leftDistance)
-      {
-        left();
-      }
-    }
-  }
-  else{
-    forward();
-  }
-    
-  }
   ///If the road is clear so move anywhere without limits
 if(count==0){
      if(key=='A')
@@ -219,18 +195,14 @@ else{
 }
   }
 }
+ if(Self_Avoid==1){
+  count++;
+  Self_Drive(&count3,&rightDistance_Self,&leftDistance_Self,&maxd,&fowrward_Self);
+    
+  }
 
  count=0;
- Serial.print("Fowrward");
-  Serial.println(fowrwardDistance);
-  Serial.print("right");
-  Serial.println(rightDistance);
-  Serial.print("left");
-  Serial.println(leftDistance);
-  Serial.print("****************************");
-  Serial.println(max(rightDistance,leftDistance));
-  Serial.print("****************************");
-  
+
 }
 
 void forward(){
@@ -269,9 +241,9 @@ digitalWrite(motorb2,LOW);
 
   }
 
-  double distance()
+  unsigned int distance()
   {
-    double distance=0;
+   unsigned int  distance=0;
     digitalWrite(trig,LOW);
     delayMicroseconds(5);
     digitalWrite(trig,HIGH);
@@ -282,4 +254,54 @@ digitalWrite(motorb2,LOW);
     return distance;
     
     
+  }
+  void Self_Drive(unsigned int *count3,unsigned int *rightDistance,unsigned int *leftDistance,unsigned int *maxd,unsigned int *fowrward){
+    
+    myServo.write(90);
+    delay(100);
+    *fowrward=distance();
+    if(*fowrward>=45){
+      forward();
+      *count3=0;
+      
+    }
+    else {
+    {
+      if(*count3==0){
+      stop1();
+      myServo.write(160);
+      delay(500);
+      *leftDistance=distance();
+      myServo.write(40);
+      delay(500);
+      *rightDistance=distance();
+       if(*rightDistance>=45 || *leftDistance >=45)
+    {
+      if(max(*rightDistance,*leftDistance)==*rightDistance)
+      {
+        *maxd=*rightDistance;
+      }
+      else if(max(*rightDistance,*leftDistance)==*leftDistance)
+      {
+        *maxd=*leftDistance;
+      }
+      else{
+        stop1();
+    }
+    
+  }
+  *count3=1;
+    }
+    
+    if(*maxd==*rightDistance &&*fowrward<50){
+      right();
+    }
+    else if(* maxd==*leftDistance&&*fowrward<50){
+      left();
+    }
+    else{
+      stop1();
+    }
+  }
+  }
   }

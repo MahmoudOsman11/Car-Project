@@ -5,6 +5,7 @@
 #define motorb2 11
 #define trig 2
 #define echo 3
+#define Self_Driving_Distance 30
 Servo myServo;
 int time1=0;
 char key;
@@ -14,6 +15,16 @@ unsigned int position1=90,fowrwardDistance=100,leftDistance=100,rightDistance=10
 unsigned int rightDistance_Self=100,leftDistance_Self=100,maxd=0,fowrward_Self=0;
 int count=0;
 unsigned int count3=0;
+
+///function declerations
+
+void forward();
+void back();
+void right();
+void left();
+void stop1();
+unsigned int distance();
+void Self_Drive(unsigned int *count3,unsigned int *rightDistance,unsigned int *leftDistance,unsigned int *maxd,unsigned int *fowrward);
 void setup() {
   Serial.begin(9600);
 
@@ -260,7 +271,7 @@ digitalWrite(motorb2,LOW);
     myServo.write(90);
     delay(100);
     *fowrward=distance();
-    if(*fowrward>=45){
+    if(*fowrward>=Self_Driving_Distance){
       forward();
       *count3=0;
       
@@ -275,7 +286,7 @@ digitalWrite(motorb2,LOW);
       myServo.write(40);
       delay(500);
       *rightDistance=distance();
-       if(*rightDistance>=45 || *leftDistance >=45)
+       if(*rightDistance>=Self_Driving_Distance || *leftDistance >=Self_Driving_Distance)
     {
       if(max(*rightDistance,*leftDistance)==*rightDistance)
       {
@@ -293,10 +304,10 @@ digitalWrite(motorb2,LOW);
   *count3=1;
     }
     
-    if(*maxd==*rightDistance &&*fowrward<50){
+    if(*maxd==*rightDistance &&*fowrward<Self_Driving_Distance){
       right();
     }
-    else if(* maxd==*leftDistance&&*fowrward<50){
+    else if(* maxd==*leftDistance&&*fowrward<Self_Driving_Distance){
       left();
     }
     else{

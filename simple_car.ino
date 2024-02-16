@@ -5,7 +5,11 @@
 #define motorb2 11
 #define trig 2
 #define echo 3
-#define Self_Driving_Distance 30
+#define Self_Driving_Distance 40
+#define Servo_interval 500
+#define enb 140
+#define enA 12
+#define enB 13
 Servo myServo;
 int time1=0;
 char key;
@@ -13,7 +17,7 @@ bool ultraActive=0,Self_Avoid=0;
 unsigned long long int timer1=0,timer2=0,timer3=0,timer4=0;
 unsigned int position1=90,fowrwardDistance=100,leftDistance=100,rightDistance=100; 
 unsigned int rightDistance_Self=100,leftDistance_Self=100,maxd=0,fowrward_Self=0;
-int count=0;
+char count=0,Servo_Counter=0;
 unsigned int count3=0;
 
 ///function declerations
@@ -87,29 +91,31 @@ else{
   
 }
 if(ultraActive==1 &&Self_Avoid ==0){
+  ///Servo_Motion
   ///radar movement (90 ->> 180 ->>90 ->> 0) 
-if(millis()-timer1>=1100){
-   myServo.write(90);
-  timer1=millis();
-  position1=90;
-  
-}
-if(millis()-timer2>=2100){
-   myServo.write(180);
-  timer2=millis();
-  position1=180;
-  
-}
-if(millis()-timer3>=3100){
-   myServo.write(90);
-  timer3=millis();
-  position1=90;
-  
-}
-if(millis()-timer4>=4100){
+if(millis()-timer1>=Servo_interval){
+  if(position1==90 &&Servo_Counter==0){
    myServo.write(0);
-  timer4=millis();
-  position1=0;
+   position1=0;
+   timer1=millis();
+  }
+  else if(position1==0 &&Servo_Counter==0){
+   myServo.write(90);
+   position1=90;
+   timer1=millis();
+   Servo_Counter=1;
+  }
+  else if(position1==90 &&Servo_Counter==1){
+   myServo.write(180);
+   position1=180;
+   timer1=millis();
+  }
+  else if(position1==180 &&Servo_Counter==1){
+   myServo.write(90);
+   position1=90;
+   timer1=millis();
+   Servo_Counter=0;
+  }
   
 }
 else{} 
@@ -217,6 +223,8 @@ else{
 }
 
 void forward(){
+analogWrite(enA,enb);
+analogWrite(enB,enb);
 digitalWrite(motora1,HIGH);
 digitalWrite(motora2,LOW);
 digitalWrite(motorb1,HIGH);
@@ -224,6 +232,8 @@ digitalWrite(motorb2,LOW);
 
   }
 void back(){
+analogWrite(enA,enb);
+analogWrite(enB,enb);
 digitalWrite(motora1,LOW);
 digitalWrite(motora2,HIGH);
 digitalWrite(motorb1,LOW);
@@ -231,6 +241,8 @@ digitalWrite(motorb2,HIGH);
 
   }
 void right(){
+analogWrite(enA,enb);
+analogWrite(enB,enb);
 digitalWrite(motora1,LOW);
 digitalWrite(motora2,HIGH);
 digitalWrite(motorb1,HIGH);
@@ -238,6 +250,8 @@ digitalWrite(motorb2,LOW);
 
   }
 void left(){
+analogWrite(enA,enb);
+analogWrite(enB,enb);
 digitalWrite(motora1,HIGH);
 digitalWrite(motora2,LOW);
 digitalWrite(motorb1,LOW);
@@ -266,6 +280,7 @@ digitalWrite(motorb2,LOW);
     
     
   }
+
   void Self_Drive(unsigned int *count3,unsigned int *rightDistance,unsigned int *leftDistance,unsigned int *maxd,unsigned int *fowrward){
     
     myServo.write(90);
@@ -280,10 +295,10 @@ digitalWrite(motorb2,LOW);
     {
       if(*count3==0){
       stop1();
-      myServo.write(160);
+      myServo.write(0);
       delay(500);
       *leftDistance=distance();
-      myServo.write(40);
+      myServo.write(180);
       delay(500);
       *rightDistance=distance();
        if(*rightDistance>=Self_Driving_Distance || *leftDistance >=Self_Driving_Distance)
@@ -306,12 +321,26 @@ digitalWrite(motorb2,LOW);
     
     if(*maxd==*rightDistance &&*fowrward<Self_Driving_Distance){
       right();
+      myServo.write(90);
+      delay(100);
+    *fowrward=distance();
+      delay(2000);
     }
     else if(* maxd==*leftDistance&&*fowrward<Self_Driving_Distance){
       left();
+      myServo.write(90);
+      delay(100);
+    *fowrward=distance();
+      delay(2000);
     }
     else{
       stop1();
+      delay(100);
+      back();
+      delay(1000);
+      right();
+      delay(500);
+      
     }
   }
   }

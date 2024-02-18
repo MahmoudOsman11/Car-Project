@@ -14,7 +14,7 @@ Servo myServo;
 int time1=0;
 char key;
 bool ultraActive=0,Self_Avoid=0;
-unsigned long long int timer1=0,timer2=0,timer3=0,timer4=0;
+unsigned long long int timer1=0;
 unsigned int position1=90,fowrwardDistance=100,leftDistance=100,rightDistance=100; 
 unsigned int rightDistance_Self=100,leftDistance_Self=100,maxd=0,fowrward_Self=0;
 char count=0,Servo_Counter=0;
@@ -42,9 +42,6 @@ void setup() {
   myServo.write(90);
   stop1();
   timer1=millis();
-  timer2=millis();
-  timer3=millis();
-  timer4=millis();
 
 }
 
